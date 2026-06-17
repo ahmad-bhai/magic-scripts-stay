@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>Stay – Userscript Manager</title>
+
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#0F1320" />
+<link rel="icon" href="icon-192.png" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ============ HOME SCREEN ============ -->
+<main id="homeScreen" class="screen">
+  <header class="topbar">
+    <h1 class="brand">stay<span class="cursor">_</span></h1>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="menuBtn" aria-label="Menu">⋮</button>
+    </div>
+  </header>
+
+  <div class="search-row">
+    <input type="text" id="searchInput" class="search-input" placeholder="Filter scripts…" />
+  </div>
+
+  <section id="scriptList" class="script-list"></section>
+
+  <p id="emptyState" class="empty-state" hidden>
+    No scripts yet.<br/>Tap <strong>+</strong> to write your first one.
+  </p>
+
+  <button id="fabAdd" class="fab" aria-label="New script">+</button>
+</main>
+
+<!-- ============ MENU SHEET ============ -->
+<div id="menuSheet" class="sheet-overlay" hidden>
+  <div class="sheet">
+    <button class="sheet-item" id="exportBtn">⭳ Export scripts (.json)</button>
+    <button class="sheet-item" id="importBtn">⭱ Import scripts (.json)</button>
+    <button class="sheet-item" id="howBtn">▸ How running scripts works</button>
+    <button class="sheet-item sheet-cancel" id="sheetCancel">Cancel</button>
+  </div>
+</div>
+<input type="file" id="importFile" accept="application/json" hidden />
+
+<!-- ============ EDITOR SCREEN ============ -->
+<main id="editorScreen" class="screen" hidden>
+  <header class="topbar">
+    <button class="icon-btn" id="backBtn" aria-label="Back">←</button>
+    <h1 class="brand small" id="editorTitle">new_script</h1>
+    <button class="text-btn accent" id="saveBtn">Save</button>
+  </header>
+
+  <div class="editor-body">
+    <label class="field-label">Name</label>
+    <input type="text" id="nameInput" class="field-input" placeholder="e.g. Dark Mode Everywhere" />
+
+    <label class="field-label">Runs on (URL match pattern)</label>
+    <input type="text" id="matchInput" class="field-input mono" placeholder="*://*.example.com/*" />
+    <p class="field-hint">Use <code>*</code> as a wildcard. <code>*://*/*</code> = every site.</p>
+
+    <label class="field-label">Run at</label>
+    <select id="runAtInput" class="field-input">
+      <option value="document-idle">Page idle (default, safest)</option>
+      <option value="document-start">Page start</option>
+      <option value="document-end">Page end</option>
+    </select>
+
+    <label class="field-label">Code</label>
+    <div class="code-window">
+      <div class="code-titlebar">
+        <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+        <span class="code-filename">script.js</span>
+      </div>
+      <textarea id="codeInput" class="code-textarea" spellcheck="false" placeholder="// JavaScript that runs on the matched page
+console.log('Stay script running');"></textarea>
+    </div>
+
+    <div class="editor-actions">
+      <button class="ghost-btn" id="bookmarkletBtn">⚙ Get bookmarklet</button>
+      <button class="ghost-btn danger" id="deleteBtn" hidden>Delete script</button>
+    </div>
+  </div>
+</main>
+
+<!-- ============ BOOKMARKLET MODAL ============ -->
+<div id="bmModal" class="modal-overlay" hidden>
+  <div class="modal">
+    <h2 class="modal-title">Run on a site</h2>
+    <p class="modal-text">
+      Stay can't auto-inject into other apps the way a browser extension can.
+      The reliable way on Android Chrome is a <strong>bookmarklet</strong>:
+      a bookmark that runs your code on whatever page is open.
+    </p>
+    <ol class="modal-steps">
+      <li>Tap <strong>Copy link</strong> below.</li>
+      <li>In Chrome, open <strong>⋮ → Bookmarks → Add bookmark</strong> (any URL).</li>
+      <li>Edit that bookmark's name to your script name, and paste the copied link as its URL.</li>
+      <li>Open the target site, tap the address bar, type the bookmark's name, and select it to run the script.</li>
+    </ol>
+    <textarea id="bmCode" class="bm-code" readonly></textarea>
+    <div class="modal-actions">
+      <button class="ghost-btn" id="bmCloseBtn">Close</button>
+      <button class="primary-btn" id="bmCopyBtn">Copy link</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ HOW IT WORKS MODAL ============ -->
+<div id="howModal" class="modal-overlay" hidden>
+  <div class="modal">
+    <h2 class="modal-title">How this app runs scripts</h2>
+    <p class="modal-text">
+      Android doesn't allow a plain web app to inject JavaScript into other
+      websites or other apps in the background — that level of access is
+      only available to real browser extensions (which is how the iOS Stay
+      app works inside Safari).
+    </p>
+    <p class="modal-text">
+      This app gets you most of the way there: write and store your
+      scripts here, then turn any of them into a <strong>bookmarklet</strong>
+      — a one-tap bookmark that executes your code on whatever page is
+      currently open in Chrome. It's the standard, working alternative on
+      Android.
+    </p>
+    <div class="modal-actions">
+      <button class="primary-btn" id="howCloseBtn">Got it</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CONFIRM DELETE MODAL ============ -->
+<div id="confirmModal" class="modal-overlay" hidden>
+  <div class="modal small">
+    <h2 class="modal-title">Delete this script?</h2>
+    <p class="modal-text" id="confirmText">This can't be undone.</p>
+    <div class="modal-actions">
+      <button class="ghost-btn" id="confirmCancel">Cancel</button>
+      <button class="primary-btn danger" id="confirmOk">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TOAST CONTAINER (replaces alert()) ============ -->
+<div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
