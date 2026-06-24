@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <body>
+    <script id="js">
+      javascript:(function(){
+    /* 1. Pehle se agar koi purana box khula ho to use remove karo */
+    let oldBox = document.getElementById('magic-pro-box');
+    if(oldBox) oldBox.remove();
+
+    /* 2. Custom Styles Inject Karo (Premium Glassmorphism Look) */
+    let styles = document.createElement('style');
+    styles.innerHTML = `
+        #magic-pro-box {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(28, 31, 46, 0.95); border: 2px solid #D704F7;
+            border-radius: 16px; padding: 25px; z-index: 999999;
+            box-shadow: 0 0 30px rgba(215, 4, 247, 0.4); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: #fff; width: 320px; text-align: center; backdrop-filter: blur(10px);
+        }
+        #magic-pro-box h3 { margin: 0 0 15px 0; font-size: 18px; color: #fff; letter-spacing: 0.5px; }
+        #magic-pro-box .input-group { margin-bottom: 15px; text-align: left; }
+        #magic-pro-box label { font-size: 11px; color: #a0a5b5; text-transform: uppercase; display: block; margin-bottom: 5px; font-weight: 600; }
+        #magic-pro-box input {
+            width: 100%; padding: 10px; background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
+            color: #fff; font-size: 14px; box-sizing: border-box; outline: none; transition: 0.3s;
+        }
+        #magic-pro-box input:focus { border-color: #D704F7; background: rgba(255,255,255,0.08); }
+        #magic-pro-box button {
+            width: 100%; padding: 12px; background: linear-gradient(135deg, #D704F7 0%, #9c03b3 100%);
+            border: none; border-radius: 8px; color: white; font-size: 14px; font-weight: bold;
+            cursor: pointer; margin-top: 10px; box-shadow: 0 4px 15px rgba(215, 4, 247, 0.3); transition: 0.3s;
+        }
+        #magic-pro-box button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(215, 4, 247, 0.5); }
+        #magic-pro-box .close-btn { position: absolute; top: 10px; right: 12px; cursor: pointer; color: #a0a5b5; font-size: 16px; }
+    `;
+    document.head.appendChild(styles);
+
+    /* 3. HTML Box Create Karo */
+    let box = document.createElement('div');
+    box.id = 'magic-pro-box';
+    box.innerHTML = `
+        <div class="close-btn" onclick="this.parentElement.remove()">×</div>
+        <h3>QUOTEX MAGIC PRO 🪄</h3>
+        <div class="input-group">
+            <label>Short Code (e.g., PK, IN, US)</label>
+            <input type="text" id="mq-short" value="PK" placeholder="PK" autocomplete="off" oninput="this.value = this.value.toUpperCase()">
+        </div>
+        <div class="input-group">
+            <label>Full Country Name</label>
+            <input type="text" id="mq-full" value="Pakistan" placeholder="Pakistan" autocomplete="off">
+        </div>
+        <button id="mq-run">RUN MAGIC 🪄✨</button>
+    `;
+    document.body.appendChild(box);
+
+    /* 4. Auto Domain Mapping Database (All countries supported) */
+    const domainMap = {
+        'PK': 'market-qx.trade',
+        'PAKISTAN': 'market-qx.trade',
+        'IN': 'qxbroker.com', // Ya jo chal rahi ho aapke mutabiq
+        'INDIA': 'qxbroker.com',
+        // Aap yahan mazeed custom domains add kar sakte hain
+    };
+
+    /* 5. Click Event Handler (The Magic Engine) */
+    document.getElementById('mq-run').addEventListener('click', function() {
+        let shortCode = document.getElementById('mq-short').value.trim().toUpperCase();
+        let fullName = document.getElementById('mq-full').value.trim();
+        let fullNameUpper = fullName.toUpperCase();
+
+        if(!shortCode || !fullName) {
+            document.getElementById('mq-run').innerText = "Fill both fields! ❌";
+            setTimeout(() => { document.getElementById('mq-run').innerText = "RUN MAGIC 🪄✨"; }, 1500);
+            return;
+        }
+
+        /* Local Storage set karo alert ke bina */
+        localStorage.setItem('country', shortCode);
+        localStorage.setItem('region', fullName);
+
+        /* Auto Domain Decision */
+        let targetDomain = "qxbroker.com"; // Default global domain
+        
+        if (domainMap[shortCode]) {
+            targetDomain = domainMap[shortCode];
+        } else if (domainMap[fullNameUpper]) {
+            targetDomain = domainMap[fullNameUpper];
+        }
+
+        /* UI par loading status dikhao alert se bachne ke liye */
+        document.getElementById('mq-run').innerText = "Injecting Magic... ✨";
+        
+        let currentUrl = window.location.href;
+        
+        setTimeout(function() {
+            if (!currentUrl.includes(targetDomain)) {
+                // Purani kisi bhi domain ko automatic new target domain se replace karo
+                let newUrl = currentUrl.replace(/(market-qx\.trade|qxbroker\.com|qxbroker\.io|qx-market\.com)/g, targetDomain);
+                
+                // Agar path galat ho jaye ya base url ho to direct sign-in standard link
+                if(newUrl === currentUrl || !newUrl.includes('/sign-in')) {
+                    newUrl = "https://" + targetDomain + "/en/sign-in/";
+                }
+                window.location.href = newUrl;
+            } else {
+                window.location.reload();
+            }
+        }, 800); // 800ms ka smooth delay UI process show karne ke liye
+    });
+})();
+    </script>
+  </body>
+</html>
